@@ -70,7 +70,8 @@ window.LOVE_SITE_DATA = {
     {
       image: "assets/my-love/furute im expecting.jpeg",
       title: "The Future I Am Expecting",
-      message: "When I think about the future, I do not only imagine places, plans, or dreams. I imagine you beside me in all of them. I imagine us growing, laughing, praying, building, and choosing each other through every season that life brings."
+      message: "When I think about the future, I do not only imagine places, plans, or dreams. I imagine you beside me in all of them. I imagine us growing, laughing, praying, building, and choosing each other through every season that life brings.",
+      song: "assets/future im expecting.mpeg"
     },
     {
       image: "assets/my-love/godess blessings.jpg",
@@ -80,7 +81,8 @@ window.LOVE_SITE_DATA = {
     {
       image: "assets/my-love/love of my life.png",
       title: "Love Of My Life",
-      message: "You are not just someone I love. You are the person my heart looks for in every happy moment and every quiet one. Calling you the love of my life feels small compared to what you mean to me, but it is the truest name my heart knows."
+      message: "You are not just someone I love. You are the person my heart looks for in every happy moment and every quiet one. Calling you the love of my life feels small compared to what you mean to me, but it is the truest name my heart knows.",
+      song: "assets/Love Of My LIfe.mpeg"
     },
     {
       image: "assets/my-love/prayer together.jpg",
@@ -90,7 +92,8 @@ window.LOVE_SITE_DATA = {
     {
       image: "assets/my-love/the eyes keeping me in a loop.jpg",
       title: "The Eyes Keeping Me In A Loop",
-      message: "Your eyes have a way of holding me still and making the world softer. I could get lost in them again and again, not because I am trapped, but because they feel like a place where my heart is happy to stay."
+      message: "Your eyes have a way of holding me still and making the world softer. I could get lost in them again and again, not because I am trapped, but because they feel like a place where my heart is happy to stay.",
+      song: "assets/The Eyes Keeping Me In A Loop song.mpeg"
     },
     {
       image: "assets/my-love/the ultimate conversation.jpg",

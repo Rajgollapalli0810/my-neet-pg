@@ -20,6 +20,7 @@ const create = (tag, className) => {
   return element;
 };
 let chaptersReady = false;
+let gallerySong = null;
 
 function versionedAsset(path) {
   if (!path || /^https?:\/\//.test(path)) return path;
@@ -286,16 +287,42 @@ function openGalleryLightbox(item) {
   $("#lightboxImage").alt = item.title;
   $("#lightboxTitle").textContent = item.title;
   $("#lightboxMessage").textContent = item.message || item.caption || "";
+  $("#lightboxSong").textContent = item.song ? "This memory has its own song playing." : "";
+  playGallerySong(item.song);
   $("#galleryLightbox").hidden = false;
   requestAnimationFrame(() => $("#galleryLightbox").classList.add("open"));
 }
 
 function closeGalleryLightbox() {
   $("#galleryLightbox").classList.remove("open");
+  stopGallerySong();
   setTimeout(() => {
     $("#galleryLightbox").hidden = true;
     $("#lightboxImage").src = "";
   }, 220);
+}
+
+function playGallerySong(song) {
+  stopGallerySong();
+  if (!song) return;
+  const backgroundMusic = $("#backgroundMusic");
+  if (!backgroundMusic.paused) backgroundMusic.volume = 0.08;
+  gallerySong = new Audio(versionedAsset(song));
+  gallerySong.volume = 0.62;
+  gallerySong.loop = true;
+  gallerySong.play().catch(() => {
+    $("#lightboxSong").textContent = "Tap once more if the song does not start automatically.";
+  });
+}
+
+function stopGallerySong() {
+  if (gallerySong) {
+    gallerySong.pause();
+    gallerySong.currentTime = 0;
+    gallerySong = null;
+  }
+  const backgroundMusic = $("#backgroundMusic");
+  if (!backgroundMusic.paused) backgroundMusic.volume = 0.36;
 }
 
 function renderNotes() {

@@ -1023,6 +1023,15 @@ video {
   line-height: 1.75;
 }
 
+.gallery-lightbox .lightbox-song {
+  margin-top: 16px;
+  color: var(--rose);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .lightbox-close {
   position: fixed;
   top: 16px;
