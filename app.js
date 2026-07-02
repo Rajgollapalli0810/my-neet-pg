@@ -23,6 +23,7 @@ let chaptersReady = false;
 let gallerySong = null;
 let proposalNoTimer = null;
 let backgroundWasPlayingBeforeGallery = false;
+let backgroundMusicRequested = false;
 
 function versionedAsset(path) {
   if (!path || /^https?:\/\//.test(path)) return path;
@@ -149,6 +150,7 @@ function setupChapters() {
 function tryPlayMusic() {
   const audio = $("#backgroundMusic");
   if (!data.music.file) return;
+  backgroundMusicRequested = true;
   prepareBackgroundMusic();
   audio.volume = 0.36;
   audio.play()
@@ -175,6 +177,9 @@ function setupMusic() {
       $("#musicToggle").textContent = "Play music";
     }
   });
+  document.addEventListener("pointerdown", () => {
+    if (backgroundMusicRequested && audio.paused) tryPlayMusic();
+  }, { passive: true });
 }
 
 function renderShell() {
