@@ -85,10 +85,12 @@ function showChapter(id, updateHash = true) {
   pauseStoryVideo();
   const targetId = sectionIds.includes(id) ? id : "home";
   const index = sectionIds.indexOf(targetId);
+  document.body.classList.add("chapter-leaving");
   sectionIds.forEach((sectionId) => {
     const section = document.getElementById(sectionId);
     if (section) section.classList.toggle("chapter-active", sectionId === targetId);
   });
+  window.setTimeout(() => document.body.classList.remove("chapter-leaving"), 260);
 
   document.querySelectorAll(".topbar nav a").forEach((link) => {
     link.classList.toggle("active", link.getAttribute("href") === `#${targetId}`);
@@ -96,7 +98,7 @@ function showChapter(id, updateHash = true) {
 
   $("#prevChapter").disabled = index === 0;
   $("#nextChapter").textContent = index === sectionIds.length - 1 ? "Finale" : "Next";
-  $("#chapterProgress").textContent = `${index + 1} / ${sectionIds.length}`;
+  $("#chapterProgress").textContent = `Chapter ${index + 1} of ${sectionIds.length}`;
   if (updateHash) history.replaceState(null, "", `#${targetId}`);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -187,6 +189,9 @@ function renderShell() {
   $("#birthdayTitle").textContent = data.birthday.title;
   $("#birthdayMessage").textContent = data.birthday.message;
   $("#finalSignature").textContent = data.birthday.signature || "";
+  document.querySelectorAll("[data-subtitle-for]").forEach((element) => {
+    element.textContent = data.chapterSubtitles?.[element.dataset.subtitleFor] || "";
+  });
   if (data.birthday.holdHeart) {
     $("#holdHeartButton strong").textContent = data.birthday.holdHeart.button;
     $("#holdHeartMessage").textContent = data.birthday.holdHeart.message;
@@ -410,7 +415,6 @@ function launchConfetti() {
   const context = canvas.getContext("2d");
   const colors = ["#d95f76", "#f6c85f", "#56a3a6", "#7d6fb2", "#ffffff"];
   let pieces = [];
-  let balloons = [];
   let sparks = [];
   let frame = 0;
 
@@ -432,15 +436,6 @@ function launchConfetti() {
     spin: Math.random() * Math.PI
   }));
 
-  balloons = Array.from({ length: 22 }, () => ({
-    x: Math.random() * canvas.width,
-    y: canvas.height + 60 + Math.random() * canvas.height * 0.7,
-    radius: 18 + Math.random() * 18,
-    speed: 1.2 + Math.random() * 2.2,
-    sway: Math.random() * Math.PI * 2,
-    color: colors[Math.floor(Math.random() * colors.length)]
-  }));
-
   sparks = Array.from({ length: 90 }, () => ({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height * 0.62,
@@ -460,32 +455,6 @@ function launchConfetti() {
       context.rotate(piece.spin);
       context.fillStyle = piece.color;
       context.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.6);
-      context.restore();
-    });
-
-    balloons.forEach((balloon) => {
-      balloon.y -= balloon.speed;
-      balloon.sway += 0.035;
-      const x = balloon.x + Math.sin(balloon.sway) * 18;
-      context.save();
-      context.fillStyle = balloon.color;
-      context.strokeStyle = "rgba(255,255,255,0.72)";
-      context.lineWidth = 1.4;
-      context.beginPath();
-      context.ellipse(x, balloon.y, balloon.radius * 0.78, balloon.radius, 0, 0, Math.PI * 2);
-      context.fill();
-      context.stroke();
-      context.beginPath();
-      context.moveTo(x, balloon.y + balloon.radius);
-      context.lineTo(x - 4, balloon.y + balloon.radius + 9);
-      context.lineTo(x + 4, balloon.y + balloon.radius + 9);
-      context.closePath();
-      context.fill();
-      context.strokeStyle = "rgba(255,255,255,0.52)";
-      context.beginPath();
-      context.moveTo(x, balloon.y + balloon.radius + 9);
-      context.bezierCurveTo(x + 10, balloon.y + 38, x - 10, balloon.y + 58, x + 4, balloon.y + 82);
-      context.stroke();
       context.restore();
     });
 
@@ -673,7 +642,8 @@ function setupHeartTrail() {
   document.addEventListener("pointerdown", (event) => {
     if (!document.body.classList.contains("site-open")) return;
     const heart = create("span", "tap-heart");
-    heart.textContent = "♥";
+    heart.textContent = Math.random() > 0.45 ? "♥" : "✦";
+    heart.classList.toggle("gold", heart.textContent === "✦");
     heart.style.left = `${event.clientX}px`;
     heart.style.top = `${event.clientY}px`;
     document.body.append(heart);

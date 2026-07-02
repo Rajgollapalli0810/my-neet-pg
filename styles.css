@@ -7,6 +7,7 @@
   --plum: #75204c;
   --teal: #b83276;
   --gold: #ffd36f;
+  --deep-gold: #c78d23;
   --violet: #c13f9a;
   --line: rgba(23, 20, 22, 0.12);
   --shadow: 0 22px 70px rgba(139, 31, 84, 0.22);
@@ -111,6 +112,48 @@ body {
   }
 }
 
+.petal-sky {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.petal-sky span {
+  position: absolute;
+  top: -70px;
+  width: 16px;
+  height: 34px;
+  border-radius: 80% 20% 80% 20%;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.78), rgba(255, 151, 190, 0.55));
+  box-shadow: 0 12px 28px rgba(139, 31, 84, 0.12);
+  animation: petalFall 18s linear infinite;
+}
+
+.petal-sky span:nth-child(1) { left: 8%; animation-delay: 0s; }
+.petal-sky span:nth-child(2) { left: 18%; animation-delay: 5s; animation-duration: 22s; }
+.petal-sky span:nth-child(3) { left: 33%; animation-delay: 2s; animation-duration: 20s; }
+.petal-sky span:nth-child(4) { left: 47%; animation-delay: 8s; animation-duration: 24s; }
+.petal-sky span:nth-child(5) { left: 62%; animation-delay: 3s; animation-duration: 19s; }
+.petal-sky span:nth-child(6) { left: 76%; animation-delay: 7s; animation-duration: 23s; }
+.petal-sky span:nth-child(7) { left: 88%; animation-delay: 1s; animation-duration: 21s; }
+.petal-sky span:nth-child(8) { left: 54%; animation-delay: 11s; animation-duration: 27s; }
+
+@keyframes petalFall {
+  0% {
+    transform: translateY(-8vh) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(112vh) translateX(70px) rotate(540deg);
+    opacity: 0;
+  }
+}
+
 body.site-open {
   overflow-x: hidden;
 }
@@ -137,6 +180,20 @@ video {
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.chapter-subtitle {
+  width: min(680px, 100%);
+  margin: -2px 0 14px;
+  color: var(--deep-gold);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.hero .chapter-subtitle,
+.birthday-card .chapter-subtitle {
+  color: rgba(255, 226, 154, 0.92);
 }
 
 .login-screen,
@@ -352,7 +409,7 @@ video {
   justify-content: space-between;
   gap: 18px;
   padding: 14px clamp(16px, 4vw, 42px);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgba(255, 211, 111, 0.35);
   background: rgba(255, 248, 243, 0.86);
   backdrop-filter: blur(18px);
 }
@@ -373,6 +430,7 @@ video {
   border-radius: 8px;
   color: white;
   background: linear-gradient(135deg, var(--plum), var(--rose));
+  box-shadow: inset 0 0 0 1px rgba(255, 211, 111, 0.55), 0 12px 28px rgba(139, 31, 84, 0.18);
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 19px;
   font-weight: 700;
@@ -547,6 +605,7 @@ video {
   min-height: calc(100vh - 150px);
   display: grid;
   align-content: center;
+  animation: chapterTurnIn 0.42s ease both;
 }
 
 .chapter-mode .hero.chapter-active {
@@ -563,7 +622,7 @@ video {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(255, 211, 111, 0.55);
   border-radius: 8px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.82);
@@ -577,6 +636,7 @@ video {
   min-height: 42px;
   color: white;
   background: linear-gradient(135deg, var(--rose), var(--plum));
+  box-shadow: inset 0 0 0 1px rgba(255, 211, 111, 0.42);
   font-weight: 900;
   cursor: pointer;
 }
@@ -587,10 +647,25 @@ video {
 }
 
 .chapter-controls span {
-  color: var(--plum);
+  color: var(--deep-gold);
   font-size: 13px;
   font-weight: 900;
   white-space: nowrap;
+}
+
+@keyframes chapterTurnIn {
+  from {
+    opacity: 0;
+    transform: translateX(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.chapter-leaving .chapter-section.chapter-active {
+  filter: saturate(1.04);
 }
 
 .section-heading {
@@ -640,10 +715,20 @@ video {
 .playlist-item,
 .note-card,
 .birthday-card {
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 211, 111, 0.34);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 14px 42px rgba(139, 31, 84, 0.1);
+}
+
+.stat-card::before,
+.gallery-card::before,
+.reason-card::before,
+.dream-card::before,
+.timeline-item::before,
+.playlist-item::before,
+.note-card::before {
+  border-color: rgba(255, 211, 111, 0.2);
 }
 
 .stat-card {
@@ -990,7 +1075,7 @@ video {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.75fr);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 211, 111, 0.42);
   border-radius: 8px;
   background: white;
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
@@ -1051,6 +1136,36 @@ video {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
+}
+
+#notes {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 211, 111, 0.18), transparent 24%),
+    linear-gradient(135deg, rgba(255, 248, 235, 0.7), rgba(255, 227, 240, 0.72));
+}
+
+#gallery {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.4), transparent 24%),
+    linear-gradient(135deg, rgba(255, 227, 240, 0.72), rgba(255, 244, 249, 0.9));
+}
+
+#timeline {
+  background:
+    radial-gradient(circle at 84% 18%, rgba(255, 211, 111, 0.2), transparent 26%),
+    linear-gradient(135deg, rgba(255, 239, 247, 0.72), rgba(255, 250, 242, 0.86));
+}
+
+#reasons {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 211, 111, 0.2), transparent 24%),
+    linear-gradient(135deg, rgba(255, 240, 248, 0.76), rgba(255, 255, 255, 0.7));
+}
+
+#playlist {
+  background:
+    radial-gradient(circle at 82% 80%, rgba(255, 211, 111, 0.2), transparent 30%),
+    linear-gradient(135deg, rgba(255, 227, 240, 0.7), rgba(255, 248, 252, 0.84));
 }
 
 .note-card {
@@ -1222,8 +1337,22 @@ video {
   display: grid;
   place-items: center;
   background:
-    linear-gradient(rgba(23, 20, 22, 0.58), rgba(23, 20, 22, 0.68)),
-    linear-gradient(135deg, var(--plum), var(--teal));
+    radial-gradient(circle at 50% 44%, rgba(255, 211, 111, 0.42), transparent 18%),
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.22), transparent 32%),
+    linear-gradient(rgba(78, 10, 48, 0.76), rgba(117, 32, 76, 0.88)),
+    linear-gradient(135deg, var(--plum), var(--rose));
+  position: relative;
+  overflow: hidden;
+}
+
+.birthday-section::before {
+  content: "";
+  position: absolute;
+  inset: -20% 20% auto;
+  height: 78%;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.24), transparent 62%);
+  transform: perspective(700px) rotateX(62deg);
+  pointer-events: none;
 }
 
 .neet-section {
@@ -1329,6 +1458,8 @@ video {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08)),
     rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 211, 111, 0.46);
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 211, 111, 0.18);
   backdrop-filter: blur(18px);
   position: relative;
   overflow: hidden;
@@ -1584,6 +1715,11 @@ video {
   text-shadow: 0 8px 18px rgba(117, 32, 76, 0.18);
 }
 
+.tap-heart.gold {
+  color: var(--gold);
+  font-size: 20px;
+}
+
 @keyframes tapHeartFloat {
   from {
     opacity: 0.95;
@@ -1626,6 +1762,8 @@ video {
 @media (max-width: 620px) {
   .topbar {
     position: static;
+    gap: 12px;
+    padding: 14px;
   }
 
   .brand strong {
@@ -1634,7 +1772,37 @@ video {
 
   .hero {
     min-height: 86vh;
-    padding: 30px 18px;
+    padding: 38px 18px 84px;
+    align-items: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(50px, 15vw, 76px);
+  }
+
+  .hero p:not(.eyebrow) {
+    font-size: 16px;
+    line-height: 1.72;
+  }
+
+  .section {
+    padding: 46px 18px 92px;
+  }
+
+  .section-heading {
+    margin-bottom: 20px;
+  }
+
+  .section-heading h2,
+  .split-section h2,
+  .birthday-card h2 {
+    font-size: clamp(36px, 12vw, 58px);
+  }
+
+  .chapter-subtitle {
+    font-size: 13px;
+    line-height: 1.65;
+    margin-bottom: 12px;
   }
 
   .hero-actions,
@@ -1670,5 +1838,32 @@ video {
   .music-player {
     right: 12px;
     bottom: 12px;
+  }
+
+  .chapter-controls {
+    bottom: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .chapter-controls button {
+    min-height: 44px;
+  }
+
+  .chapter-controls span {
+    font-size: 12px;
+  }
+
+  .birthday-card,
+  .neet-card,
+  .login-panel,
+  .intro-frame {
+    padding: 24px;
+  }
+
+  .note-card,
+  .dream-card,
+  .timeline-item,
+  .reason-card {
+    padding: 18px;
   }
 }

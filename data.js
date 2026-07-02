@@ -26,6 +26,19 @@ window.LOVE_SITE_DATA = {
     heartbeatMessage: "This is how my heart reacts every time I think of you."
   },
   galleryIntro: "These are not just photos. They are little pieces of time where my heart stopped, smiled, and quietly said, this is what love feels like.",
+  chapterSubtitles: {
+    home: "The first page of a surprise made only for you.",
+    stats: "A few numbers for a love that cannot really be counted.",
+    story: "A message from my heart, waiting for you to press play.",
+    timeline: "The path that slowly, beautifully became us.",
+    gallery: "The moments I never want time to take away.",
+    notes: "Little letters for the days your heart needs me close.",
+    playlist: "Songs that carry pieces of us.",
+    reasons: "A hundred ways my heart admires you.",
+    dreams: "The future I keep imagining with you beside me.",
+    "neet-pg": "For the dream you are fighting for and the doctor you are becoming.",
+    birthday: "The final chapter, wrapped in all my love."
+  },
   music: {
     file: "assets/music/background-music.mp3"
   },
