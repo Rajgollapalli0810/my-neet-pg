@@ -302,6 +302,84 @@ video {
   line-height: 1;
 }
 
+.hanging-hearts {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 124px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hanging-hearts span {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 74px;
+  background: linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 211, 111, 0.12));
+  transform-origin: top center;
+  animation: hangingHeartSway 3.8s ease-in-out infinite;
+}
+
+.hanging-hearts span::after {
+  content: "♥";
+  position: absolute;
+  left: 50%;
+  bottom: -18px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 50%;
+  color: white;
+  background: linear-gradient(135deg, rgba(255, 111, 168, 0.94), rgba(184, 23, 98, 0.92));
+  box-shadow: 0 14px 34px rgba(117, 32, 76, 0.28);
+  font-size: 18px;
+  transform: translateX(-50%) rotate(7deg);
+}
+
+.hanging-hearts span:nth-child(1) {
+  left: 16%;
+  height: 66px;
+  animation-delay: -0.9s;
+}
+
+.hanging-hearts span:nth-child(2) {
+  left: 50%;
+  height: 92px;
+  animation-delay: -1.8s;
+}
+
+.hanging-hearts span:nth-child(3) {
+  right: 16%;
+  height: 72px;
+  animation-delay: -2.7s;
+}
+
+.intro-hanging-hearts span:nth-child(1) {
+  left: 12%;
+}
+
+.intro-hanging-hearts span:nth-child(3) {
+  right: 12%;
+}
+
+.login-panel > :not(.hanging-hearts),
+.intro-frame > :not(.hanging-hearts) {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes hangingHeartSway {
+  0%, 100% {
+    transform: rotate(-4deg);
+  }
+
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
 .intro-frame {
   width: min(680px, 100%);
   text-align: center;
@@ -813,6 +891,7 @@ video {
 .notes-grid,
 .reasons-grid,
 .dreams-board,
+.book-showcase,
 .playlist,
 .timeline,
 .split-section {
@@ -830,6 +909,8 @@ video {
 .gallery-card,
 .reason-card,
 .dream-card,
+.book-cover,
+.book-reader,
 .timeline-item,
 .playlist-item,
 .note-card,
@@ -844,6 +925,8 @@ video {
 .gallery-card::before,
 .reason-card::before,
 .dream-card::before,
+.book-cover::before,
+.book-reader::before,
 .timeline-item::before,
 .playlist-item::before,
 .note-card::before {
@@ -1073,6 +1156,92 @@ video {
     transform: translateY(-18px) scale(1.16);
     opacity: 0.72;
   }
+}
+
+.book-section {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 211, 111, 0.22), transparent 26%),
+    radial-gradient(circle at 90% 70%, rgba(239, 79, 136, 0.2), transparent 30%),
+    linear-gradient(135deg, rgba(255, 239, 247, 0.88), rgba(255, 247, 251, 0.96));
+}
+
+.book-section::before {
+  content: "Read me again";
+  position: absolute;
+  right: clamp(12px, 5vw, 72px);
+  top: clamp(20px, 6vw, 82px);
+  color: rgba(117, 32, 76, 0.08);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(56px, 12vw, 150px);
+  font-weight: 700;
+  line-height: 0.9;
+  pointer-events: none;
+}
+
+.book-showcase {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 0.78fr 1.22fr;
+  gap: clamp(18px, 4vw, 34px);
+  align-items: stretch;
+}
+
+.book-cover {
+  min-height: 460px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: clamp(28px, 5vw, 48px);
+  text-align: center;
+  color: white;
+  background:
+    linear-gradient(90deg, rgba(117, 32, 76, 0.34), transparent 16%),
+    radial-gradient(circle at 50% 16%, rgba(255, 211, 111, 0.24), transparent 26%),
+    linear-gradient(145deg, #b81762, #75204c);
+  box-shadow: 0 28px 80px rgba(117, 32, 76, 0.24);
+}
+
+.book-cover span,
+.book-cover small {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.book-cover strong {
+  width: min(260px, 100%);
+  margin: 18px 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: 0.95;
+}
+
+.book-reader {
+  min-height: 520px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 14px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 244, 249, 0.86));
+}
+
+.book-reader-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.book-reader object {
+  width: 100%;
+  min-height: 470px;
+  border: 1px solid rgba(117, 32, 76, 0.16);
+  border-radius: 8px;
+  background: #fff;
 }
 
 .timeline {
@@ -1873,6 +2042,10 @@ video {
     grid-template-columns: 1fr;
   }
 
+  .book-showcase {
+    grid-template-columns: 1fr;
+  }
+
   .reasons-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -1941,6 +2114,24 @@ video {
     grid-template-columns: 42px 1fr;
   }
 
+  .book-cover {
+    min-height: 320px;
+  }
+
+  .book-reader {
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .book-reader-actions,
+  .book-reader-actions .button {
+    width: 100%;
+  }
+
+  .book-reader object {
+    min-height: 420px;
+  }
+
   .playlist-item em {
     grid-column: 2;
   }
@@ -1981,6 +2172,8 @@ video {
 
   .note-card,
   .dream-card,
+  .book-cover,
+  .book-reader,
   .timeline-item,
   .reason-card {
     padding: 18px;

@@ -1,7 +1,7 @@
 // Personalize this file. Put your photos/videos/music in the assets folder,
 // then update the paths below. Example: "assets/our-photo.jpg"
 window.LOVE_SITE_DATA = {
-  assetVersion: "20260701-clean-refresh",
+  assetVersion: "20260702-stats-swap",
   secretDate: "21102021",
   couple: {
     yourName: "Chinnu",
@@ -33,6 +33,7 @@ window.LOVE_SITE_DATA = {
     timeline: "The path that slowly, beautifully became us.",
     gallery: "The moments I never want time to take away.",
     notes: "Little letters for the days your heart needs me close.",
+    book: "A memory you already read once, now kept forever inside our world.",
     playlist: "Songs that carry pieces of us.",
     reasons: "A hundred ways my heart admires you.",
     dreams: "The future I keep imagining with you beside me.",
@@ -46,11 +47,20 @@ window.LOVE_SITE_DATA = {
     text: "A little message from my heart to yours. Play it whenever you want to hear how much you mean to me.",
     file: "assets/video-message.mp4"
   },
+  book: {
+    title: "Delight",
+    file: "assets/delight.pdf",
+    message: "You already read these words once, but I wanted them to live forever inside our little world. This book is not just pages anymore; it is a piece of the old me who loved you deeply, the present me who still chooses you, and the future me who wants every memory with you to stay safe."
+  },
   stats: [
     { label: "Days together", type: "daysTogether" },
     { label: "Years of love", value: "Almost 7" },
-    { label: "Our Life Time Achivement", value: "NEET PG" },
-    { label: "Favorite person", value: "Always you" }
+    { label: "Prayer In My Heart", value: "You And Me" },
+    { label: "Promise I Carry", value: "A Life With You" },
+    { label: "Dream I Protect", value: "Our Future" },
+    { label: "Home I'm Waiting For", value: "With You" },
+    { label: "Forever I Believe In", value: "Us" },
+    { label: "My Heart's Choice", value: "Only You" }
   ],
   timeline: [
     { date: "The beginning", title: "First Meet", text: "Some meetings feel normal in the moment, but later the heart understands they were never ordinary. That first meet became the soft beginning of everything I now call love." },

@@ -49,6 +49,11 @@
     </div>
     <div class="login-screen" id="loginScreen">
       <div class="login-panel">
+        <div class="hanging-hearts" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
         <div class="login-heart-lock">
           <span>♥</span>
         </div>
@@ -72,6 +77,11 @@
 
     <div class="intro-screen" id="introScreen" hidden>
       <div class="intro-frame">
+        <div class="hanging-hearts intro-hanging-hearts" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
         <div class="intro-glow-heart">♥</div>
         <p class="eyebrow">A tiny film about us</p>
         <h2 id="introTitle">Every ordinary day became golden.</h2>
@@ -100,6 +110,7 @@
         <a href="#timeline">Timeline</a>
         <a href="#gallery">Gallery</a>
         <a href="#notes">Notes</a>
+        <a href="#book">Book</a>
         <a href="#reasons">Reasons</a>
         <a href="#neet-pg">NEET PG</a>
         <a href="#birthday">Birthday</a>
@@ -181,6 +192,31 @@
         </article>
       </section>
 
+      <section class="section book-section" id="book">
+        <div class="section-heading">
+          <p class="eyebrow">The book I wrote for you</p>
+          <p class="chapter-subtitle" data-subtitle-for="book"></p>
+          <h2 id="bookTitle">Delight</h2>
+          <p class="section-intro" id="bookMessage"></p>
+        </div>
+        <div class="book-showcase">
+          <div class="book-cover" aria-hidden="true">
+            <span>For</span>
+            <strong>Dr.Amulya Raj</strong>
+            <small>Delight</small>
+          </div>
+          <div class="book-reader">
+            <div class="book-reader-actions">
+              <a class="button primary" id="bookOpenLink" href="assets/delight.pdf" target="_blank" rel="noopener">Open Our Book</a>
+              <a class="button secondary" id="bookDownloadLink" href="assets/delight.pdf" download>Download PDF</a>
+            </div>
+            <object id="bookPdf" data="assets/delight.pdf" type="application/pdf">
+              <p>Your browser cannot preview this PDF here. Use the Open Our Book button.</p>
+            </object>
+          </div>
+        </div>
+      </section>
+
       <section class="section playlist-section" id="playlist">
         <div class="section-heading">
           <p class="eyebrow">Our playlist</p>
@@ -258,7 +294,7 @@
 
       <div class="chapter-controls" id="chapterControls" aria-label="Chapter controls">
         <button id="prevChapter" type="button">Previous</button>
-        <span id="chapterProgress">Chapter 1 of 11</span>
+        <span id="chapterProgress">Chapter 1 of 12</span>
         <button id="nextChapter" type="button">Next</button>
       </div>
     </main>
@@ -277,7 +313,7 @@
 
     <canvas id="confettiCanvas" aria-hidden="true"></canvas>
 
-    <script src="data.js?v=20260702-notes"></script>
-    <script src="app.js?v=20260702-notes"></script>
+    <script src="data.js?v=20260702-stats-swap"></script>
+    <script src="app.js?v=20260702-stats-swap"></script>
   </body>
 </html>

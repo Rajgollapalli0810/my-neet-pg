@@ -6,6 +6,7 @@ const sectionIds = [
   "timeline",
   "gallery",
   "notes",
+  "book",
   "playlist",
   "reasons",
   "dreams",
@@ -191,6 +192,7 @@ function renderShell() {
   $("#heroMessage").textContent = data.hero.message;
   $("#heartbeatMessage").textContent = data.hero.heartbeatMessage || "";
   $("#galleryIntro").textContent = data.galleryIntro || "";
+  renderBook();
   $("#birthdayTitle").textContent = data.birthday.title;
   $("#birthdayMessage").textContent = data.birthday.message;
   $("#finalSignature").textContent = data.birthday.signature || "";
@@ -223,7 +225,7 @@ function renderStats() {
   data.stats.forEach((stat) => {
     const article = create("article", "stat-card");
     const value = stat.type === "daysTogether" ? formatDaysTogether() : stat.value;
-    article.innerHTML = `<strong>${value}</strong><span>${stat.label}</span>`;
+    article.innerHTML = `<span>${stat.label}</span><strong>${value}</strong>`;
     grid.append(article);
   });
 }
@@ -265,6 +267,16 @@ function renderVideo() {
   });
   video.addEventListener("error", () => frame.insertAdjacentHTML("beforeend", "<span>Add video-message.mp4</span>"));
   frame.append(video, cover);
+}
+
+function renderBook() {
+  if (!data.book) return;
+  const file = versionedAsset(data.book.file);
+  $("#bookTitle").textContent = data.book.title || "The Book I Wrote For You";
+  $("#bookMessage").textContent = data.book.message || "";
+  $("#bookOpenLink").href = file;
+  $("#bookDownloadLink").href = file;
+  $("#bookPdf").data = file;
 }
 
 function renderTimeline() {
