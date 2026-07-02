@@ -1,694 +1,477 @@
-const data = window.LOVE_SITE_DATA;
-const sectionIds = [
-  "home",
-  "stats",
-  "story",
-  "timeline",
-  "gallery",
-  "notes",
-  "book",
-  "playlist",
-  "reasons",
-  "dreams",
-  "neet-pg",
-  "birthday"
-];
+const config = window.NEET_PG_DEMO_CONFIG;
+const app = document.querySelector("#app");
 
-const $ = (selector) => document.querySelector(selector);
-const create = (tag, className) => {
-  const element = document.createElement(tag);
-  if (className) element.className = className;
-  return element;
+const SECTION_COUNT = config.totalSections;
+const QUESTIONS_PER_SECTION = config.questionsPerSection;
+const TOTAL_QUESTIONS = SECTION_COUNT * QUESTIONS_PER_SECTION;
+const STORAGE_KEY = "neet-pg-2026-demo-state";
+
+const state = {
+  started: false,
+  completed: false,
+  currentSection: 0,
+  currentQuestion: 0,
+  sectionStartedAt: null,
+  submittedSections: [],
+  answers: Array.from({ length: SECTION_COUNT }, () => Array(QUESTIONS_PER_SECTION).fill(null)),
+  review: Array.from({ length: SECTION_COUNT }, () => Array(QUESTIONS_PER_SECTION).fill(false))
 };
-let chaptersReady = false;
-let gallerySong = null;
-let proposalNoTimer = null;
-let backgroundWasPlayingBeforeGallery = false;
-let backgroundMusicRequested = false;
 
-function versionedAsset(path) {
-  if (!path || /^https?:\/\//.test(path)) return path;
-  const joiner = path.includes("?") ? "&" : "?";
-  return `${path}${joiner}v=${encodeURIComponent(data.assetVersion || "1")}`;
-}
+let questions = [];
+let timerId = null;
 
-function formatDaysTogether() {
-  const start = new Date(data.couple.anniversary);
-  const target = data.couple.birthday ? new Date(data.couple.birthday) : new Date();
-  if (Number.isNaN(start.getTime())) return "Every day";
-  const diff = target.setHours(0, 0, 0, 0) - start.setHours(0, 0, 0, 0);
-  return `${Math.max(1, Math.floor(diff / 86400000))}`;
-}
+function createQuestionSet() {
+  const bank = config.questionBank;
+  const result = [];
 
-function imageCardFallback(element) {
-  element.classList.add("missing-media");
-  element.innerHTML = "<span>Add photo</span>";
-}
-
-function setupLogin() {
-  $("#loginTitle").textContent = `For ${data.couple.partnerName}`;
-  if (data.login?.hint) {
-    $("#loginHint").textContent = `Hint: ${data.login.hint}`;
-  }
-  prepareBackgroundMusic();
-  $("#loginForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    const typed = $("#secretDate").value.trim().replace(/\D/g, "");
-    const secret = String(data.secretDate).replace(/\D/g, "");
-    if (typed !== secret) {
-      $("#loginMessage").textContent = "That date is not the key. Try the special one.";
-      return;
+  for (let sectionIndex = 0; sectionIndex < SECTION_COUNT; sectionIndex += 1) {
+    for (let questionIndex = 0; questionIndex < QUESTIONS_PER_SECTION; questionIndex += 1) {
+      const bankIndex = (sectionIndex * QUESTIONS_PER_SECTION + questionIndex) % bank.length;
+      const source = bank[bankIndex];
+      const absoluteNumber = sectionIndex * QUESTIONS_PER_SECTION + questionIndex + 1;
+      const videoCase = questionIndex === 5 ? config.videoCases[sectionIndex] : null;
+      result.push({
+        id: `S${sectionIndex + 1}-Q${questionIndex + 1}`,
+        number: absoluteNumber,
+        sectionIndex,
+        localNumber: questionIndex + 1,
+        subject: source.subject,
+        stem: videoCase
+          ? `${videoCase.title}. Watch the clip and answer: ${source.stem}`
+          : source.stem,
+        options: source.options,
+        answer: source.answer,
+        explanation: source.explanation,
+        video: videoCase
+      });
     }
-    $("#loginScreen").classList.add("is-hidden");
-    tryPlayMusic();
-    $("#introScreen").hidden = false;
-    setTimeout(() => $("#introScreen").classList.add("is-visible"), 40);
+  }
+
+  return result;
+}
+
+function sectionQuestions(sectionIndex = state.currentSection) {
+  return questions.filter((question) => question.sectionIndex === sectionIndex);
+}
+
+function currentQuestion() {
+  return sectionQuestions()[state.currentQuestion];
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+
+  try {
+    const saved = JSON.parse(raw);
+    Object.assign(state, saved);
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
+
+function resetExam() {
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(Math.max(0, totalSeconds) / 60);
+  const seconds = Math.max(0, totalSeconds) % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function sectionRemainingSeconds() {
+  if (!state.sectionStartedAt) return config.sectionDurationSeconds;
+  const elapsed = Math.floor((Date.now() - state.sectionStartedAt) / 1000);
+  return Math.max(0, config.sectionDurationSeconds - elapsed);
+}
+
+function answeredCount(sectionIndex = state.currentSection) {
+  return state.answers[sectionIndex].filter((answer) => answer !== null).length;
+}
+
+function reviewCount(sectionIndex = state.currentSection) {
+  return state.review[sectionIndex].filter(Boolean).length;
+}
+
+function startTimer() {
+  clearInterval(timerId);
+  timerId = setInterval(() => {
+    const timer = document.querySelector("#timer");
+    const remaining = sectionRemainingSeconds();
+    if (timer) {
+      timer.textContent = formatTime(remaining);
+      timer.classList.toggle("danger", remaining <= 300);
+    }
+    if (remaining <= 0) submitSection(true);
+  }, 500);
+}
+
+function buildVideoPoster(text) {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+      <rect width="960" height="540" fill="#101828"/>
+      <rect x="48" y="48" width="864" height="444" rx="18" fill="#1d2939" stroke="#475467" stroke-width="3"/>
+      <circle cx="480" cy="270" r="68" fill="#e9f8f3"/>
+      <path d="M462 230 L462 310 L532 270 Z" fill="#087443"/>
+      <text x="480" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#f9fafb">${text}</text>
+      <text x="480" y="442" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#d0d5dd">Replace the MP4 file in assets/video-cases for real clips</text>
+    </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function renderStart() {
+  clearInterval(timerId);
+  app.innerHTML = `
+    <main class="start-screen">
+      <section class="hero-panel">
+        <div>
+          <p class="eyebrow">Demo test environment</p>
+          <h1>${config.examTitle}</h1>
+          <p class="lead">A clean, exam-like NEET PG practice demo with 180 MCQs, five locked sections, independent section timers, negative marking and video-based case questions.</p>
+        </div>
+        <div class="hero-stats" aria-label="Exam summary">
+          <article><span>Total Questions</span><strong>${TOTAL_QUESTIONS}</strong></article>
+          <article><span>Sections</span><strong>${SECTION_COUNT}</strong></article>
+          <article><span>Per Section</span><strong>${QUESTIONS_PER_SECTION}</strong></article>
+          <article><span>Timer</span><strong>42 min</strong></article>
+        </div>
+      </section>
+
+      <section class="instructions">
+        <h2>Instructions</h2>
+        <div class="instruction-grid">
+          <article><strong>One section at a time</strong><p>You can navigate only within the active section.</p></article>
+          <article><strong>No backward access</strong><p>Submitted sections are locked permanently.</p></article>
+          <article><strong>Auto submit</strong><p>When 42 minutes end, the section submits and the next one opens.</p></article>
+          <article><strong>Marking</strong><p>Correct +4, wrong -1, unattempted 0.</p></article>
+        </div>
+        <label class="consent"><input type="checkbox" id="agree" /> I have read the instructions and want to begin.</label>
+        <button class="primary-action" id="startExam" type="button" disabled>Start Exam</button>
+      </section>
+    </main>
+  `;
+
+  document.querySelector("#agree").addEventListener("change", (event) => {
+    document.querySelector("#startExam").disabled = !event.target.checked;
+  });
+
+  document.querySelector("#startExam").addEventListener("click", () => {
+    state.started = true;
+    state.sectionStartedAt = Date.now();
+    saveState();
+    renderExam();
   });
 }
 
-function setupIntro() {
-  $("#introTitle").textContent = data.intro.title;
-  $("#introText").textContent = data.intro.text;
-  $("#enterSite").addEventListener("click", async () => {
-    $("#introScreen").classList.remove("is-visible");
-    setTimeout(() => {
-      $("#introScreen").hidden = true;
-      $("#site").hidden = false;
-      setupChapters();
-      $("#musicPlayer").hidden = false;
-      document.body.classList.add("site-open");
-    }, 400);
-    tryPlayMusic();
-  });
-
-}
-
-function showChapter(id, updateHash = true) {
-  pauseStoryVideo();
-  const targetId = sectionIds.includes(id) ? id : "home";
-  const index = sectionIds.indexOf(targetId);
-  document.body.classList.add("chapter-leaving");
-  sectionIds.forEach((sectionId) => {
-    const section = document.getElementById(sectionId);
-    if (section) section.classList.toggle("chapter-active", sectionId === targetId);
-  });
-  window.setTimeout(() => document.body.classList.remove("chapter-leaving"), 260);
-
-  document.querySelectorAll(".topbar nav a").forEach((link) => {
-    link.classList.toggle("active", link.getAttribute("href") === `#${targetId}`);
-  });
-
-  $("#prevChapter").disabled = index === 0;
-  $("#nextChapter").textContent = index === sectionIds.length - 1 ? "Finale" : "Next";
-  $("#chapterProgress").textContent = `Chapter ${index + 1} of ${sectionIds.length}`;
-  if (updateHash) history.replaceState(null, "", `#${targetId}`);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-function pauseStoryVideo() {
-  const video = document.querySelector("#videoFrame video");
-  if (video && !video.paused) video.pause();
-}
-
-function setupChapters() {
-  if (chaptersReady) {
-    showChapter(location.hash.replace("#", "") || "home", false);
+function renderExam() {
+  if (state.completed) {
+    renderResults();
     return;
   }
-  chaptersReady = true;
-  document.body.classList.add("chapter-mode");
-  sectionIds.forEach((sectionId) => {
-    const section = document.getElementById(sectionId);
-    if (section) section.classList.add("chapter-section");
-  });
 
-  document.querySelectorAll(".topbar nav a").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      const id = link.getAttribute("href").replace("#", "");
-      if (!sectionIds.includes(id)) return;
-      event.preventDefault();
-      showChapter(id);
+  const q = currentQuestion();
+  const selected = state.answers[state.currentSection][state.currentQuestion];
+  const isReviewed = state.review[state.currentSection][state.currentQuestion];
+  const sectionName = config.sections[state.currentSection];
+
+  app.innerHTML = `
+    <div class="exam-shell">
+      <header class="exam-header">
+        <div>
+          <p class="eyebrow">Section ${state.currentSection + 1} of ${SECTION_COUNT}</p>
+          <h1>${sectionName}</h1>
+        </div>
+        <div class="timer-card">
+          <span>Time Left</span>
+          <strong id="timer">${formatTime(sectionRemainingSeconds())}</strong>
+        </div>
+      </header>
+
+      <section class="status-strip">
+        <span>Answered: <strong>${answeredCount()}</strong></span>
+        <span>Marked: <strong>${reviewCount()}</strong></span>
+        <span>Unattempted: <strong>${QUESTIONS_PER_SECTION - answeredCount()}</strong></span>
+        <span>Question: <strong>${state.currentQuestion + 1}/${QUESTIONS_PER_SECTION}</strong></span>
+      </section>
+
+      <main class="exam-grid">
+        <section class="question-panel">
+          <div class="question-meta">
+            <span>Q${q.localNumber}</span>
+            <span>${q.subject}</span>
+            ${q.video ? "<span>Video Based</span>" : ""}
+          </div>
+          ${q.video ? renderVideo(q.video) : ""}
+          <h2>${q.stem}</h2>
+          <div class="options" role="radiogroup" aria-label="Question options">
+            ${q.options.map((option, index) => `
+              <label class="option ${selected === index ? "selected" : ""}">
+                <input type="radio" name="answer" value="${index}" ${selected === index ? "checked" : ""} />
+                <span>${String.fromCharCode(65 + index)}</span>
+                <strong>${option}</strong>
+              </label>
+            `).join("")}
+          </div>
+          <div class="actions">
+            <button class="secondary-action" id="clearAnswer" type="button">Clear Response</button>
+            <button class="review-action ${isReviewed ? "active" : ""}" id="markReview" type="button">${isReviewed ? "Unmark Review" : "Mark for Review"}</button>
+            <button class="primary-action" id="saveNext" type="button">Save & Next</button>
+            <button class="submit-action" id="submitSection" type="button">Submit Section</button>
+          </div>
+        </section>
+
+        <aside class="navigator" aria-label="Question navigation">
+          <h2>Question Navigator</h2>
+          <div class="nav-grid">
+            ${sectionQuestions().map((question, index) => questionButton(question, index)).join("")}
+          </div>
+          <div class="legend">
+            <span><i class="answered"></i>Answered</span>
+            <span><i class="review"></i>Review</span>
+            <span><i class="current"></i>Current</span>
+            <span><i></i>Not answered</span>
+          </div>
+        </aside>
+      </main>
+    </div>
+  `;
+
+  bindExamEvents();
+  startTimer();
+}
+
+function renderVideo(video) {
+  return `
+    <figure class="video-case">
+      <video controls preload="metadata" playsinline poster="${buildVideoPoster(video.posterText)}">
+        <source src="${video.src}" type="video/mp4" />
+        Your browser cannot play this video. Add an MP4 at ${video.src}.
+      </video>
+      <figcaption>${video.title}</figcaption>
+    </figure>
+  `;
+}
+
+function questionButton(question, index) {
+  const answered = state.answers[state.currentSection][index] !== null;
+  const reviewed = state.review[state.currentSection][index];
+  const current = index === state.currentQuestion;
+  return `
+    <button
+      type="button"
+      class="${answered ? "answered" : ""} ${reviewed ? "review" : ""} ${current ? "current" : ""}"
+      data-question-index="${index}"
+      aria-label="Go to question ${question.localNumber}">
+      ${question.localNumber}
+    </button>
+  `;
+}
+
+function bindExamEvents() {
+  document.querySelectorAll("input[name='answer']").forEach((input) => {
+    input.addEventListener("change", () => {
+      state.answers[state.currentSection][state.currentQuestion] = Number(input.value);
+      saveState();
+      renderExam();
     });
   });
 
-  $("#prevChapter").addEventListener("click", () => {
-    const current = sectionIds.findIndex((id) => document.getElementById(id)?.classList.contains("chapter-active"));
-    showChapter(sectionIds[Math.max(0, current - 1)]);
-  });
-
-  $("#nextChapter").addEventListener("click", () => {
-    const current = sectionIds.findIndex((id) => document.getElementById(id)?.classList.contains("chapter-active"));
-    if (current === sectionIds.length - 1) {
-      launchConfetti();
-      return;
-    }
-    showChapter(sectionIds[Math.min(sectionIds.length - 1, current + 1)]);
-  });
-
-  showChapter(location.hash.replace("#", "") || "home", false);
-}
-
-function tryPlayMusic() {
-  const audio = $("#backgroundMusic");
-  if (!data.music.file) return;
-  backgroundMusicRequested = true;
-  prepareBackgroundMusic();
-  audio.volume = 0.36;
-  audio.play()
-    .then(() => $("#musicToggle").textContent = "Pause music")
-    .catch(() => $("#musicToggle").textContent = "Play music");
-}
-
-function prepareBackgroundMusic() {
-  const audio = $("#backgroundMusic");
-  if (!data.music.file) return;
-  if (!audio.getAttribute("src")) {
-    audio.src = data.music.file;
-    audio.load();
-  }
-}
-
-function setupMusic() {
-  const audio = $("#backgroundMusic");
-  $("#musicToggle").addEventListener("click", () => {
-    if (audio.paused) {
-      tryPlayMusic();
-    } else {
-      audio.pause();
-      $("#musicToggle").textContent = "Play music";
-    }
-  });
-  document.addEventListener("pointerdown", () => {
-    if (backgroundMusicRequested && audio.paused) tryPlayMusic();
-  }, { passive: true });
-}
-
-function renderShell() {
-  document.title = data.couple.title;
-  $("#brandName").textContent = data.couple.title;
-  $("#brandInitials").textContent = data.couple.initials;
-  $("#heroDate").textContent = data.hero.dateLine;
-  $("#heroTitle").textContent = data.hero.title;
-  $("#heroMessage").textContent = data.hero.message;
-  $("#heartbeatMessage").textContent = data.hero.heartbeatMessage || "";
-  $("#galleryIntro").textContent = data.galleryIntro || "";
-  renderBook();
-  $("#birthdayTitle").textContent = data.birthday.title;
-  $("#birthdayMessage").textContent = data.birthday.message;
-  $("#finalSignature").textContent = data.birthday.signature || "";
-  document.querySelectorAll("[data-subtitle-for]").forEach((element) => {
-    element.textContent = data.chapterSubtitles?.[element.dataset.subtitleFor] || "";
-  });
-  if (data.birthday.holdHeart) {
-    $("#holdHeartButton strong").textContent = data.birthday.holdHeart.button;
-    $("#holdHeartMessage").textContent = data.birthday.holdHeart.message;
-  }
-  $("#videoMessageText").textContent = data.videoMessage.text;
-  renderProposalFlow();
-  if (data.neetPg) {
-    $("#neetTitle").textContent = data.neetPg.title;
-    $("#neetMessage").textContent = data.neetPg.message;
-    $("#neetConfettiButton").textContent = data.neetPg.button || "Celebrate";
-  }
-  if (data.moodBooster) {
-    $("#moodTitle").textContent = data.moodBooster.title;
-    $("#moodButton").textContent = data.moodBooster.button;
-  }
-
-  if (data.hero.image) {
-    $("#heroBg").style.backgroundImage = `linear-gradient(90deg, rgba(18, 14, 15, .72), rgba(18, 14, 15, .2)), url("${versionedAsset(data.hero.image)}")`;
-  }
-}
-
-function renderStats() {
-  const grid = $("#statsGrid");
-  data.stats.forEach((stat) => {
-    const article = create("article", "stat-card");
-    const value = stat.type === "daysTogether" ? formatDaysTogether() : stat.value;
-    article.innerHTML = `<span>${stat.label}</span><strong>${value}</strong>`;
-    grid.append(article);
-  });
-}
-
-function renderVideo() {
-  const frame = $("#videoFrame");
-  if (!data.videoMessage.file) {
-    frame.insertAdjacentHTML("beforeend", "<span>Add video</span>");
-    return;
-  }
-  const video = create("video");
-  video.src = versionedAsset(data.videoMessage.file);
-  video.controls = true;
-  video.playsInline = true;
-  video.preload = "metadata";
-  const cover = create("button", "video-cover");
-  cover.type = "button";
-  cover.innerHTML = "<span>Play video message</span><small>with soft background music</small>";
-  cover.addEventListener("click", () => {
-    video.play();
-  });
-  video.addEventListener("play", () => {
-    frame.classList.add("is-playing");
-    const music = $("#backgroundMusic");
-    music.volume = 0.14;
-    if (music.paused && data.music.file) {
-      music.src = data.music.file;
-      music.play().catch(() => {});
-    }
-  });
-  video.addEventListener("pause", () => {
-    const music = $("#backgroundMusic");
-    if (!music.paused) music.volume = 0.36;
-  });
-  video.addEventListener("ended", () => {
-    frame.classList.remove("is-playing");
-    const music = $("#backgroundMusic");
-    if (!music.paused) music.volume = 0.36;
-  });
-  video.addEventListener("error", () => frame.insertAdjacentHTML("beforeend", "<span>Add video-message.mp4</span>"));
-  frame.append(video, cover);
-}
-
-function renderBook() {
-  if (!data.book) return;
-  const file = versionedAsset(data.book.file);
-  $("#bookTitle").textContent = data.book.title || "The Book I Wrote For You";
-  $("#bookMessage").textContent = data.book.message || "";
-  $("#bookOpenLink").href = file;
-  $("#bookDownloadLink").href = file;
-  $("#bookPdf").data = file;
-}
-
-function renderTimeline() {
-  const list = $("#timelineList");
-  data.timeline.forEach((item) => {
-    const article = create("article", "timeline-item");
-    article.innerHTML = `<time>${item.date}</time><h3>${item.title}</h3><p>${item.text}</p>`;
-    list.append(article);
-  });
-}
-
-function renderGallery() {
-  const grid = $("#galleryGrid");
-  data.gallery.forEach((item) => {
-    const article = create("article", "gallery-card");
-    const media = create("div", "gallery-media");
-    const img = create("img");
-    img.src = versionedAsset(item.image);
-    img.alt = item.title;
-    img.loading = "lazy";
-    img.addEventListener("error", () => imageCardFallback(media));
-    media.append(img);
-    const copy = create("div", "gallery-copy");
-    copy.innerHTML = `<h3>${item.title}</h3><p>${item.message || item.caption || ""}</p>`;
-    article.append(media, copy);
-    article.tabIndex = 0;
-    article.setAttribute("role", "button");
-    article.setAttribute("aria-label", `Open ${item.title}`);
-    article.addEventListener("click", () => openGalleryLightbox(item));
-    article.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openGalleryLightbox(item);
-      }
-    });
-    grid.append(article);
-  });
-}
-
-function openGalleryLightbox(item) {
-  $("#lightboxImage").src = versionedAsset(item.image);
-  $("#lightboxImage").alt = item.title;
-  $("#lightboxTitle").textContent = item.title;
-  $("#lightboxMessage").textContent = item.message || item.caption || "";
-  $("#lightboxSong").textContent = "";
-  playGallerySong(item.song);
-  $("#galleryLightbox").hidden = false;
-  requestAnimationFrame(() => $("#galleryLightbox").classList.add("open"));
-}
-
-function closeGalleryLightbox() {
-  $("#galleryLightbox").classList.remove("open");
-  stopGallerySong();
-  setTimeout(() => {
-    $("#galleryLightbox").hidden = true;
-    $("#lightboxImage").src = "";
-  }, 220);
-}
-
-function playGallerySong(song) {
-  stopGallerySong();
-  if (!song) return;
-  const backgroundMusic = $("#backgroundMusic");
-  backgroundWasPlayingBeforeGallery = !backgroundMusic.paused;
-  if (backgroundWasPlayingBeforeGallery) backgroundMusic.pause();
-  gallerySong = new Audio(versionedAsset(song));
-  gallerySong.volume = 0.62;
-  gallerySong.loop = true;
-  gallerySong.play().catch(() => {
-    $("#lightboxSong").textContent = "Tap once more if the song does not start automatically.";
-  });
-}
-
-function stopGallerySong() {
-  if (gallerySong) {
-    gallerySong.pause();
-    gallerySong.currentTime = 0;
-    gallerySong = null;
-  }
-  const backgroundMusic = $("#backgroundMusic");
-  backgroundMusic.volume = 0.36;
-  if (backgroundWasPlayingBeforeGallery) {
-    backgroundMusic.play().catch(() => {});
-  }
-  backgroundWasPlayingBeforeGallery = false;
-}
-
-function renderNotes() {
-  const grid = $("#notesGrid");
-  data.hiddenNotes.forEach((note, index) => {
-    const title = typeof note === "string" ? `Note ${index + 1}` : note.title;
-    const message = typeof note === "string" ? note : note.message;
-    const button = create("button", "note-card");
-    button.type = "button";
-    button.innerHTML = `<span>Hidden note ${index + 1}</span><strong>${title}</strong><p>${message}</p>`;
+  document.querySelectorAll("[data-question-index]").forEach((button) => {
     button.addEventListener("click", () => {
-      button.classList.add("revealed");
-      revealFinalHiddenNoteIfReady();
+      state.currentQuestion = Number(button.dataset.questionIndex);
+      saveState();
+      renderExam();
     });
-    grid.append(button);
   });
-  if (data.finalHiddenNote) {
-    $("#finalHiddenTitle").textContent = data.finalHiddenNote.title;
-    $("#finalHiddenMessage").textContent = data.finalHiddenNote.message;
-  }
-}
 
-function revealFinalHiddenNoteIfReady() {
-  const notes = document.querySelectorAll(".note-card");
-  const opened = document.querySelectorAll(".note-card.revealed");
-  if (notes.length && notes.length === opened.length) {
-    $("#finalHiddenNote").classList.add("revealed");
-    launchConfetti();
-  }
-}
+  document.querySelector("#clearAnswer").addEventListener("click", () => {
+    state.answers[state.currentSection][state.currentQuestion] = null;
+    saveState();
+    renderExam();
+  });
 
-function renderPlaylist() {
-  const list = $("#playlistList");
-  data.playlist.forEach((song, index) => {
-    const item = create("a", "playlist-item");
-    item.href = song.link;
-    if (/^https?:\/\//.test(song.link)) {
-      item.target = "_blank";
-      item.rel = "noreferrer";
+  document.querySelector("#markReview").addEventListener("click", () => {
+    const current = state.review[state.currentSection][state.currentQuestion];
+    state.review[state.currentSection][state.currentQuestion] = !current;
+    saveState();
+    renderExam();
+  });
+
+  document.querySelector("#saveNext").addEventListener("click", () => {
+    if (state.currentQuestion < QUESTIONS_PER_SECTION - 1) {
+      state.currentQuestion += 1;
+      saveState();
+      renderExam();
+      return;
     }
-    item.innerHTML = `<span>${String(index + 1).padStart(2, "0")}</span><strong>${song.title}</strong><em>${song.artist}</em>`;
-    list.append(item);
+    submitSection(false);
   });
+
+  document.querySelector("#submitSection").addEventListener("click", () => submitSection(false));
 }
 
-function renderReasons() {
-  const grid = $("#reasonsGrid");
-  const reasons = [...data.reasons];
-  while (reasons.length < 100) reasons.push(`Reason ${reasons.length + 1}: write your own here.`);
-  reasons.slice(0, 100).forEach((reason, index) => {
-    const item = create("article", "reason-card");
-    item.innerHTML = `<span>${index + 1}</span><p>${reason}</p>`;
-    grid.append(item);
-  });
-}
+function submitSection(autoSubmitted) {
+  clearInterval(timerId);
+  if (state.submittedSections.includes(state.currentSection)) return;
 
-function renderDreams() {
-  const board = $("#dreamsBoard");
-  data.dreams.forEach((dream) => {
-    const item = create("article", "dream-card");
-    item.innerHTML = `<h3>${dream.title}</h3><p>${dream.text}</p>`;
-    board.append(item);
-  });
-}
-
-function launchConfetti() {
-  const canvas = $("#confettiCanvas");
-  const context = canvas.getContext("2d");
-  const colors = ["#d95f76", "#f6c85f", "#56a3a6", "#7d6fb2", "#ffffff"];
-  let pieces = [];
-  let sparks = [];
-  let frame = 0;
-
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  if (!autoSubmitted) {
+    const ok = confirm("Submit this section? You cannot return to it after submission.");
+    if (!ok) {
+      startTimer();
+      return;
+    }
   }
 
-  resize();
-  window.addEventListener("resize", resize, { once: true });
-  pieces = Array.from({ length: 180 }, () => ({
-    type: "paper",
-    x: Math.random() * canvas.width,
-    y: -20 - Math.random() * canvas.height,
-    size: 5 + Math.random() * 8,
-    speed: 2 + Math.random() * 5,
-    drift: -2 + Math.random() * 4,
-    color: colors[Math.floor(Math.random() * colors.length)],
-    spin: Math.random() * Math.PI
-  }));
+  state.submittedSections.push(state.currentSection);
 
-  sparks = Array.from({ length: 90 }, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height * 0.62,
-    size: 1.5 + Math.random() * 3.5,
-    pulse: Math.random() * Math.PI * 2,
-    color: colors[Math.floor(Math.random() * colors.length)]
-  }));
-
-  function draw() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    pieces.forEach((piece) => {
-      piece.y += piece.speed;
-      piece.x += piece.drift;
-      piece.spin += 0.08;
-      context.save();
-      context.translate(piece.x, piece.y);
-      context.rotate(piece.spin);
-      context.fillStyle = piece.color;
-      context.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.6);
-      context.restore();
-    });
-
-    sparks.forEach((spark) => {
-      spark.pulse += 0.12;
-      const glow = 0.45 + Math.sin(spark.pulse) * 0.35;
-      context.save();
-      context.globalAlpha = Math.max(0.15, glow);
-      context.strokeStyle = spark.color;
-      context.lineWidth = 1.8;
-      context.beginPath();
-      context.moveTo(spark.x - spark.size * 2.2, spark.y);
-      context.lineTo(spark.x + spark.size * 2.2, spark.y);
-      context.moveTo(spark.x, spark.y - spark.size * 2.2);
-      context.lineTo(spark.x, spark.y + spark.size * 2.2);
-      context.stroke();
-      context.restore();
-    });
-
-    frame += 1;
-    if (frame < 300) requestAnimationFrame(draw);
-    else context.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  draw();
-}
-
-function renderProposalFlow() {
-  const flow = data.birthday.proposalFlow;
-  if (!flow) {
-    $("#proposalGame").hidden = true;
+  if (state.currentSection >= SECTION_COUNT - 1) {
+    state.completed = true;
+    saveState();
+    renderResults();
     return;
   }
 
-  $("#proposalIntro").textContent = flow.intro;
-  $("#proposalYes").textContent = flow.yes || "Yes";
-  $("#proposalNo").textContent = flow.no || "No";
-  $("#proposalAnswer").textContent = flow.accepted;
-  $("#secretLetterTitle").textContent = flow.secretLetterTitle || "My Final Secret Letter To You";
-  $("#secretLetterBody").textContent = flow.secretLetter || "";
-  updateProposalQuestion();
+  state.currentSection += 1;
+  state.currentQuestion = 0;
+  state.sectionStartedAt = Date.now();
+  saveState();
+  renderSectionTransition(autoSubmitted);
 }
 
-function currentProposalQuestions() {
-  const flow = data.birthday.proposalFlow;
-  return [...flow.questions, flow.finalQuestion];
+function renderSectionTransition(autoSubmitted) {
+  app.innerHTML = `
+    <main class="transition-screen">
+      <section>
+        <p class="eyebrow">${autoSubmitted ? "Time is up" : "Section submitted"}</p>
+        <h1>Section ${state.currentSection} is locked.</h1>
+        <p>You are moving to Section ${state.currentSection + 1}. Previous sections cannot be opened again.</p>
+        <button class="primary-action" id="continueExam" type="button">Continue to Next Section</button>
+      </section>
+    </main>
+  `;
+
+  document.querySelector("#continueExam").addEventListener("click", renderExam);
 }
 
-function updateProposalQuestion() {
-  const questions = currentProposalQuestions();
-  const game = $("#proposalGame");
-  const index = Number(game.dataset.step || 0);
-  const isFinal = index === questions.length - 1;
-  $("#proposalQuestion").textContent = questions[index];
-  game.classList.toggle("is-final", isFinal);
-  $("#proposalNo").classList.remove("is-running");
-  $("#proposalNo").style.left = "";
-  $("#proposalNo").style.top = "";
-  startProposalNoDance();
-}
+function calculateResults() {
+  const sections = [];
+  let correct = 0;
+  let wrong = 0;
+  let unattempted = 0;
 
-function moveProposalNo() {
-  const button = $("#proposalNo");
-  const game = $("#proposalGame");
-  if (game.classList.contains("accepted")) return;
-  const gameRect = game.getBoundingClientRect();
-  const buttonRect = button.getBoundingClientRect();
-  const maxX = Math.max(0, gameRect.width - buttonRect.width - 20);
-  const maxY = Math.max(0, gameRect.height - buttonRect.height - 20);
-  button.classList.add("is-running");
-  button.style.left = `${Math.random() * maxX}px`;
-  button.style.top = `${Math.random() * maxY}px`;
-}
+  for (let sectionIndex = 0; sectionIndex < SECTION_COUNT; sectionIndex += 1) {
+    let sectionCorrect = 0;
+    let sectionWrong = 0;
+    let sectionUnattempted = 0;
+    const qs = sectionQuestions(sectionIndex);
 
-function startProposalNoDance() {
-  clearInterval(proposalNoTimer);
-  proposalNoTimer = setInterval(moveProposalNo, 1200);
-  setTimeout(moveProposalNo, 450);
-}
+    qs.forEach((question, index) => {
+      const answer = state.answers[sectionIndex][index];
+      if (answer === null) sectionUnattempted += 1;
+      else if (answer === question.answer) sectionCorrect += 1;
+      else sectionWrong += 1;
+    });
 
-function stopProposalNoDance() {
-  clearInterval(proposalNoTimer);
-  proposalNoTimer = null;
-}
-
-function setupProposalFlow() {
-  const flow = data.birthday.proposalFlow;
-  if (!flow) return;
-
-  $("#proposalNo").addEventListener("mouseenter", moveProposalNo);
-  $("#proposalNo").addEventListener("touchstart", (event) => {
-    event.preventDefault();
-    moveProposalNo();
-  });
-  $("#proposalNo").addEventListener("click", moveProposalNo);
-
-  $("#proposalYes").addEventListener("click", () => {
-    const game = $("#proposalGame");
-    const questions = currentProposalQuestions();
-    const nextIndex = Number(game.dataset.step || 0) + 1;
-    if (nextIndex >= questions.length) {
-      game.classList.add("accepted");
-      stopProposalNoDance();
-      launchConfetti();
-      return;
-    }
-    game.dataset.step = String(nextIndex);
-    updateProposalQuestion();
-  });
-}
-
-function setupMoodBooster() {
-  if (!data.moodBooster?.messages?.length) return;
-  let lastIndex = -1;
-  $("#moodButton").addEventListener("click", () => {
-    let index = Math.floor(Math.random() * data.moodBooster.messages.length);
-    if (data.moodBooster.messages.length > 1) {
-      while (index === lastIndex) {
-        index = Math.floor(Math.random() * data.moodBooster.messages.length);
-      }
-    }
-    lastIndex = index;
-    $("#moodMessage").textContent = data.moodBooster.messages[index];
-    $("#moodBooster").classList.add("has-message");
-  });
-}
-
-function setupHeartbeat() {
-  $("#heartbeatButton").addEventListener("click", () => {
-    $("#heartbeatBox").classList.add("revealed");
-  });
-}
-
-function setupHoldHeart() {
-  const button = $("#holdHeartButton");
-  const box = $("#holdHeartBox");
-  const progress = $("#holdHeartProgress");
-  let timer = null;
-  let startedAt = 0;
-  let animationFrame = null;
-
-  function reset() {
-    clearTimeout(timer);
-    cancelAnimationFrame(animationFrame);
-    timer = null;
-    startedAt = 0;
-    if (!box.classList.contains("revealed")) progress.style.width = "0%";
+    correct += sectionCorrect;
+    wrong += sectionWrong;
+    unattempted += sectionUnattempted;
+    sections.push({
+      name: config.sections[sectionIndex],
+      correct: sectionCorrect,
+      wrong: sectionWrong,
+      unattempted: sectionUnattempted,
+      score: sectionCorrect * config.marking.correct + sectionWrong * config.marking.wrong
+    });
   }
 
-  function updateProgress() {
-    const elapsed = Date.now() - startedAt;
-    progress.style.width = `${Math.min(100, (elapsed / 3000) * 100)}%`;
-    if (elapsed < 3000 && timer) animationFrame = requestAnimationFrame(updateProgress);
-  }
-
-  function start(event) {
-    event.preventDefault();
-    if (box.classList.contains("revealed")) return;
-    startedAt = Date.now();
-    timer = setTimeout(() => {
-      box.classList.add("revealed");
-      progress.style.width = "100%";
-      launchConfetti();
-    }, 3000);
-    updateProgress();
-  }
-
-  button.addEventListener("pointerdown", start);
-  button.addEventListener("pointerup", reset);
-  button.addEventListener("pointerleave", reset);
-  button.addEventListener("pointercancel", reset);
+  return {
+    correct,
+    wrong,
+    unattempted,
+    score: correct * config.marking.correct + wrong * config.marking.wrong,
+    sections
+  };
 }
 
-function setupGalleryLightbox() {
-  $("#lightboxClose").addEventListener("click", closeGalleryLightbox);
-  $("#galleryLightbox").addEventListener("click", (event) => {
-    if (event.target === $("#galleryLightbox")) closeGalleryLightbox();
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !$("#galleryLightbox").hidden) closeGalleryLightbox();
-  });
-}
+function renderResults() {
+  clearInterval(timerId);
+  const result = calculateResults();
 
-function setupHeartTrail() {
-  document.addEventListener("pointerdown", (event) => {
-    if (!document.body.classList.contains("site-open")) return;
-    const heart = create("span", "tap-heart");
-    heart.textContent = Math.random() > 0.45 ? "♥" : "✦";
-    heart.classList.toggle("gold", heart.textContent === "✦");
-    heart.style.left = `${event.clientX}px`;
-    heart.style.top = `${event.clientY}px`;
-    document.body.append(heart);
-    setTimeout(() => heart.remove(), 900);
-  });
+  app.innerHTML = `
+    <main class="result-screen">
+      <section class="result-hero">
+        <p class="eyebrow">Exam completed</p>
+        <h1>NEET PG 2026 Demo Result</h1>
+        <div class="score-circle">
+          <span>Total Score</span>
+          <strong>${result.score}</strong>
+          <small>out of ${TOTAL_QUESTIONS * config.marking.correct}</small>
+        </div>
+      </section>
+
+      <section class="summary-cards">
+        <article><span>Correct</span><strong>${result.correct}</strong></article>
+        <article><span>Wrong</span><strong>${result.wrong}</strong></article>
+        <article><span>Unattempted</span><strong>${result.unattempted}</strong></article>
+        <article><span>Attempted</span><strong>${TOTAL_QUESTIONS - result.unattempted}</strong></article>
+      </section>
+
+      <section class="section-results">
+        <h2>Section-wise Score</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Section</th>
+                <th>Correct</th>
+                <th>Wrong</th>
+                <th>Unattempted</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.sections.map((section, index) => `
+                <tr>
+                  <td>${index + 1}. ${section.name}</td>
+                  <td>${section.correct}</td>
+                  <td>${section.wrong}</td>
+                  <td>${section.unattempted}</td>
+                  <td>${section.score}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <button class="secondary-action" id="resetExam" type="button">Reset Demo</button>
+      </section>
+    </main>
+  `;
+
+  document.querySelector("#resetExam").addEventListener("click", resetExam);
 }
 
 function init() {
-  setupLogin();
-  setupIntro();
-  setupMusic();
-  renderShell();
-  renderStats();
-  renderVideo();
-  renderTimeline();
-  renderGallery();
-  renderNotes();
-  renderPlaylist();
-  renderReasons();
-  renderDreams();
-  setupProposalFlow();
-  setupMoodBooster();
-  setupHeartbeat();
-  setupHoldHeart();
-  setupGalleryLightbox();
-  setupHeartTrail();
-  $("#confettiButton").addEventListener("click", launchConfetti);
-  $("#neetConfettiButton").addEventListener("click", launchConfetti);
+  questions = createQuestionSet();
+  loadState();
+
+  if (questions.length !== TOTAL_QUESTIONS) {
+    app.innerHTML = "<p>Configuration error: expected 180 questions.</p>";
+    return;
+  }
+
+  if (!state.started) renderStart();
+  else if (state.completed) renderResults();
+  else {
+    const remaining = sectionRemainingSeconds();
+    if (remaining <= 0) submitSection(true);
+    else renderExam();
+  }
 }
 
 init();
