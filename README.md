@@ -16,6 +16,7 @@ A static HTML, CSS and JavaScript demo exam app for NEET PG 2026 practice.
 - Final result with total score, correct, wrong, unattempted and section-wise score.
 - Sample medical MCQs.
 - Video-based question placeholders.
+- Rotating paper modules that change after every reset.
 - Mobile-friendly exam layout.
 
 ## Preview Locally
@@ -101,6 +102,12 @@ Each question has:
 - `3` means option D.
 
 The demo generates 180 questions from the sample bank.
+
+## Rotating Question Modules
+
+The app has four paper modules: `Module A`, `Module B`, `Module C`, and `Module D`.
+
+When the user completes the exam and clicks `Reset Demo And Load Next Module`, the app loads the next module. The sections, timer and marking stay the same, but the question sequence and video-question positions change.
 
 ## Add To Git
 

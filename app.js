@@ -5,12 +5,20 @@ const SECTION_COUNT = config.totalSections;
 const QUESTIONS_PER_SECTION = config.questionsPerSection;
 const TOTAL_QUESTIONS = SECTION_COUNT * QUESTIONS_PER_SECTION;
 const STORAGE_KEY = "neet-pg-2026-demo-state";
+const MODULE_KEY = "neet-pg-2026-demo-module";
+const QUESTION_MODULES = [
+  { name: "Module A", offset: 0, step: 1, videoQuestionIndex: 5 },
+  { name: "Module B", offset: 11, step: 5, videoQuestionIndex: 11 },
+  { name: "Module C", offset: 23, step: 7, videoQuestionIndex: 17 },
+  { name: "Module D", offset: 35, step: 11, videoQuestionIndex: 23 }
+];
 
 const state = {
   started: false,
   completed: false,
   currentSection: 0,
   currentQuestion: 0,
+  moduleIndex: readModuleIndex(),
   sectionStartedAt: null,
   submittedSections: [],
   answers: Array.from({ length: SECTION_COUNT }, () => Array(QUESTIONS_PER_SECTION).fill(null)),
@@ -20,16 +28,27 @@ const state = {
 let questions = [];
 let timerId = null;
 
+function readModuleIndex() {
+  const saved = Number(localStorage.getItem(MODULE_KEY) || 0);
+  return Number.isFinite(saved) ? saved % QUESTION_MODULES.length : 0;
+}
+
+function activeModule() {
+  return QUESTION_MODULES[state.moduleIndex % QUESTION_MODULES.length];
+}
+
 function createQuestionSet() {
   const bank = config.questionBank;
+  const module = activeModule();
   const result = [];
 
   for (let sectionIndex = 0; sectionIndex < SECTION_COUNT; sectionIndex += 1) {
     for (let questionIndex = 0; questionIndex < QUESTIONS_PER_SECTION; questionIndex += 1) {
-      const bankIndex = (sectionIndex * QUESTIONS_PER_SECTION + questionIndex) % bank.length;
+      const sequenceIndex = sectionIndex * QUESTIONS_PER_SECTION + questionIndex;
+      const bankIndex = (module.offset + sequenceIndex * module.step) % bank.length;
       const source = bank[bankIndex];
       const absoluteNumber = sectionIndex * QUESTIONS_PER_SECTION + questionIndex + 1;
-      const videoCase = questionIndex === 5 ? config.videoCases[sectionIndex] : null;
+      const videoCase = questionIndex === module.videoQuestionIndex ? config.videoCases[sectionIndex] : null;
       const questionSource = videoCase?.question || source;
       result.push({
         id: `S${sectionIndex + 1}-Q${questionIndex + 1}`,
@@ -76,6 +95,8 @@ function loadState() {
 }
 
 function resetExam() {
+  const nextModuleIndex = (state.moduleIndex + 1) % QUESTION_MODULES.length;
+  localStorage.setItem(MODULE_KEY, String(nextModuleIndex));
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
@@ -135,9 +156,10 @@ function renderStart() {
           <p class="eyebrow">Demo test environment</p>
           <h1>${config.examTitle}</h1>
           <p class="lead">A clean, exam-like NEET PG practice demo with 180 MCQs, five locked sections, independent section timers, negative marking and video-based case questions.</p>
+          <p class="module-pill">Current paper: <strong>${activeModule().name}</strong></p>
         </div>
         <div class="hero-stats" aria-label="Exam summary">
-          <article><span>Total Questions</span><strong>${TOTAL_QUESTIONS}</strong></article>
+        <article><span>Total Questions</span><strong>${TOTAL_QUESTIONS}</strong></article>
           <article><span>Sections</span><strong>${SECTION_COUNT}</strong></article>
           <article><span>Per Section</span><strong>${QUESTIONS_PER_SECTION}</strong></article>
           <article><span>Timer</span><strong>42 min</strong></article>
@@ -164,8 +186,10 @@ function renderStart() {
 
   document.querySelector("#startExam").addEventListener("click", () => {
     state.started = true;
+    state.moduleIndex = readModuleIndex();
     state.sectionStartedAt = Date.now();
     saveState();
+    questions = createQuestionSet();
     renderExam();
   });
 }
@@ -187,6 +211,7 @@ function renderExam() {
         <div>
           <p class="eyebrow">Section ${state.currentSection + 1} of ${SECTION_COUNT}</p>
           <h1>${sectionName}</h1>
+          <p class="module-line">${activeModule().name}</p>
         </div>
         <div class="timer-card">
           <span>Time Left</span>
@@ -417,6 +442,7 @@ function renderResults() {
       <section class="result-hero">
         <p class="eyebrow">Exam completed</p>
         <h1>NEET PG 2026 Demo Result</h1>
+        <p class="module-line">Completed paper: ${activeModule().name}</p>
         <div class="score-circle">
           <span>Total Score</span>
           <strong>${result.score}</strong>
@@ -457,7 +483,7 @@ function renderResults() {
             </tbody>
           </table>
         </div>
-        <button class="secondary-action" id="resetExam" type="button">Reset Demo</button>
+        <button class="secondary-action" id="resetExam" type="button">Reset Demo And Load Next Module</button>
       </section>
     </main>
   `;
@@ -466,8 +492,9 @@ function renderResults() {
 }
 
 function init() {
-  questions = createQuestionSet();
   loadState();
+  if (typeof state.moduleIndex !== "number") state.moduleIndex = readModuleIndex();
+  questions = createQuestionSet();
 
   if (questions.length !== TOTAL_QUESTIONS) {
     app.innerHTML = "<p>Configuration error: expected 180 questions.</p>";
