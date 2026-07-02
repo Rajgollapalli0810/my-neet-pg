@@ -30,18 +30,19 @@ function createQuestionSet() {
       const source = bank[bankIndex];
       const absoluteNumber = sectionIndex * QUESTIONS_PER_SECTION + questionIndex + 1;
       const videoCase = questionIndex === 5 ? config.videoCases[sectionIndex] : null;
+      const questionSource = videoCase?.question || source;
       result.push({
         id: `S${sectionIndex + 1}-Q${questionIndex + 1}`,
         number: absoluteNumber,
         sectionIndex,
         localNumber: questionIndex + 1,
-        subject: source.subject,
+        subject: questionSource.subject,
         stem: videoCase
-          ? `${videoCase.title}. Watch the clip and answer: ${source.stem}`
-          : source.stem,
-        options: source.options,
-        answer: source.answer,
-        explanation: source.explanation,
+          ? `${videoCase.title}. Watch the clip and answer: ${questionSource.stem}`
+          : questionSource.stem,
+        options: questionSource.options,
+        answer: questionSource.answer,
+        explanation: questionSource.explanation,
         video: videoCase
       });
     }
@@ -247,10 +248,18 @@ function renderExam() {
 }
 
 function renderVideo(video) {
+  const extension = video.src.split("?")[0].split(".").pop().toLowerCase();
+  const type = {
+    mp4: "video/mp4",
+    webm: "video/webm",
+    ogv: "video/ogg",
+    ogg: "video/ogg"
+  }[extension] || "video/mp4";
+
   return `
     <figure class="video-case">
       <video controls preload="metadata" playsinline poster="${buildVideoPoster(video.posterText)}">
-        <source src="${video.src}" type="video/mp4" />
+        <source src="${video.src}" type="${type}" />
         Your browser cannot play this video. Add an MP4 at ${video.src}.
       </video>
       <figcaption>${video.title}</figcaption>

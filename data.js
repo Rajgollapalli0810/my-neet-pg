@@ -17,29 +17,69 @@ window.NEET_PG_DEMO_CONFIG = {
   ],
   videoCases: [
     {
-      title: "Video case: Abnormal respiratory movement",
-      src: "assets/video-cases/respiratory-case.mp4",
-      posterText: "Respiratory Video Case"
+      title: "Video case: Lung ultrasound clip",
+      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Imaging%20video%20taken%20on%20a%20COVID-19%20lung%20ultrasound%20phantom.webm",
+      posterText: "Lung Ultrasound Video Case",
+      source: "Wikimedia Commons",
+      question: {
+        subject: "Medicine",
+        stem: "On lung ultrasound, multiple vertical comet-tail artifacts arising from the pleural line are best described as:",
+        options: ["A-lines", "B-lines", "Lung point", "Barcode sign"],
+        answer: 1,
+        explanation: "B-lines are vertical reverberation artifacts arising from the pleural line and are used in interstitial syndrome assessment."
+      }
     },
     {
-      title: "Video case: Neurological gait assessment",
-      src: "assets/video-cases/neuro-gait-case.mp4",
-      posterText: "Neurology Video Case"
+      title: "Video case: Human kidney ultrasound scan",
+      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Human%20Kidney%20Ultrasound%20Scan.webm",
+      posterText: "Kidney Ultrasound Video Case",
+      source: "Wikimedia Commons",
+      question: {
+        subject: "Surgery",
+        stem: "A renal ultrasound video is shown. Which finding is most suggestive of hydronephrosis?",
+        options: ["Uniformly echogenic renal sinus only", "Dilatation of renal pelvis and calyces", "Posterior acoustic shadow from ribs", "Small simple cortical cyst only"],
+        answer: 1,
+        explanation: "Hydronephrosis is seen as dilatation of the renal pelvis and calyceal system."
+      }
     },
     {
-      title: "Video case: Obstetric ultrasound clip",
-      src: "assets/video-cases/obstetric-usg-case.mp4",
-      posterText: "OBG Video Case"
+      title: "Video case: Fetal movement on 3D ultrasound",
+      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Fetal%20movements%203D%20Ultrasound%20Dr.%20Wolfgang%20Moroder.theora.ogv",
+      posterText: "Fetal Ultrasound Video Case",
+      source: "Wikimedia Commons",
+      question: {
+        subject: "Obstetrics",
+        stem: "The fetal ultrasound video demonstrates fetal movement. In routine obstetric practice, ultrasound is useful for all except:",
+        options: ["Assessment of fetal viability", "Placental localization", "Determination of fetal presentation", "Definitive diagnosis of fetal chromosomal karyotype without sampling"],
+        answer: 3,
+        explanation: "Ultrasound can suggest anomalies or markers, but definitive fetal karyotype requires genetic sampling/testing."
+      }
     },
     {
-      title: "Video case: ECG monitor tracing",
-      src: "assets/video-cases/ecg-monitor-case.mp4",
-      posterText: "ECG Video Case"
+      title: "Video case: Cardiac ultrasound clip",
+      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Ultrasound%20video%20of%20a%20human%20heart%20-%201741-7015-9-17.ogv",
+      posterText: "Cardiac Ultrasound Video Case",
+      source: "Wikimedia Commons",
+      question: {
+        subject: "Physiology",
+        stem: "The moving cardiac ultrasound primarily demonstrates which physiological event?",
+        options: ["Ventilation of alveoli", "Cyclical myocardial contraction and relaxation", "Renal tubular filtration", "Peristalsis of small intestine"],
+        answer: 1,
+        explanation: "Echocardiography displays real-time myocardial motion during systole and diastole."
+      }
     },
     {
-      title: "Video case: Surgical examination finding",
-      src: "assets/video-cases/surgery-case.mp4",
-      posterText: "Surgery Video Case"
+      title: "Video case: Fetal spine ultrasound",
+      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Fetal%20spine%2019%20weeks%20Dr%20Wolfgang%20Moroder.theora.ogv",
+      posterText: "Fetal Spine Ultrasound Video Case",
+      source: "Wikimedia Commons",
+      question: {
+        subject: "Anatomy",
+        stem: "The fetal spine ultrasound clip is shown. Failure of closure of the posterior vertebral arches is associated with:",
+        options: ["Spina bifida", "Craniosynostosis", "Achondroplasia", "Osteopetrosis"],
+        answer: 0,
+        explanation: "Spina bifida results from defective closure of the neural tube/vertebral arches."
+      }
     }
   ],
   questionBank: [

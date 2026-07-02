@@ -43,7 +43,9 @@ You can also open `index.html` directly in a browser, but a local server is bett
 
 ## Add Real Video Questions
 
-The app already includes video-based questions in each section. Put MP4 files in:
+The app includes video-based questions in each section. By default, the demo uses open media from Wikimedia Commons so the questions work without uploading large files.
+
+To replace them with your own clips, put MP4 files in:
 
 ```text
 assets/video-cases/
@@ -59,7 +61,19 @@ ecg-monitor-case.mp4
 surgery-case.mp4
 ```
 
-If the files are missing, the question still appears with a poster placeholder.
+Then update `videoCases` in `data.js`.
+
+If a local file is missing, the question still appears with a poster placeholder.
+
+## Video Sources
+
+The demo video cases use Wikimedia Commons media links for:
+
+- Lung ultrasound phantom clip.
+- Human kidney ultrasound scan.
+- Fetal movement ultrasound.
+- Human heart ultrasound.
+- Fetal spine ultrasound.
 
 ## Edit Questions
 
