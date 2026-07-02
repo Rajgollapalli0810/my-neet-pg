@@ -194,6 +194,12 @@ h2 {
   font-weight: 700;
 }
 
+.start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .primary-action,
 .secondary-action,
 .review-action,
@@ -306,6 +312,17 @@ h2 {
 
 .status-strip strong {
   color: var(--ink);
+}
+
+.mini-reset {
+  min-height: 36px;
+  border: 1px solid rgba(180, 35, 24, 0.24);
+  border-radius: 999px;
+  padding: 0 13px;
+  color: var(--danger);
+  background: #fff4f2;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .exam-grid {

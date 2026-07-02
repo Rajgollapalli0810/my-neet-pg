@@ -101,6 +101,14 @@ function resetExam() {
   location.reload();
 }
 
+function confirmAndResetExam() {
+  if (state.started && !state.completed) {
+    const ok = confirm("Reset this attempt and load a different question module?");
+    if (!ok) return;
+  }
+  resetExam();
+}
+
 function formatTime(totalSeconds) {
   const minutes = Math.floor(Math.max(0, totalSeconds) / 60);
   const seconds = Math.max(0, totalSeconds) % 60;
@@ -175,7 +183,10 @@ function renderStart() {
           <article><strong>Marking</strong><p>Correct +4, wrong -1, unattempted 0.</p></article>
         </div>
         <label class="consent"><input type="checkbox" id="agree" /> I have read the instructions and want to begin.</label>
-        <button class="primary-action" id="startExam" type="button" disabled>Start Exam</button>
+        <div class="start-actions">
+          <button class="primary-action" id="startExam" type="button" disabled>Start Exam</button>
+          <button class="secondary-action" id="loadDifferentModule" type="button">Load Different Module</button>
+        </div>
       </section>
     </main>
   `;
@@ -192,6 +203,8 @@ function renderStart() {
     questions = createQuestionSet();
     renderExam();
   });
+
+  document.querySelector("#loadDifferentModule").addEventListener("click", resetExam);
 }
 
 function renderExam() {
@@ -224,6 +237,7 @@ function renderExam() {
         <span>Marked: <strong>${reviewCount()}</strong></span>
         <span>Unattempted: <strong>${QUESTIONS_PER_SECTION - answeredCount()}</strong></span>
         <span>Question: <strong>${state.currentQuestion + 1}/${QUESTIONS_PER_SECTION}</strong></span>
+        <button class="mini-reset" id="resetModuleExam" type="button">Reset & New Module</button>
       </section>
 
       <main class="exam-grid">
@@ -348,6 +362,7 @@ function bindExamEvents() {
   });
 
   document.querySelector("#submitSection").addEventListener("click", () => submitSection(false));
+  document.querySelector("#resetModuleExam").addEventListener("click", confirmAndResetExam);
 }
 
 function submitSection(autoSubmitted) {
@@ -488,7 +503,7 @@ function renderResults() {
     </main>
   `;
 
-  document.querySelector("#resetExam").addEventListener("click", resetExam);
+  document.querySelector("#resetExam").addEventListener("click", confirmAndResetExam);
 }
 
 function init() {
