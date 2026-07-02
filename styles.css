@@ -304,37 +304,39 @@ video {
 
 .hanging-hearts {
   position: absolute;
-  inset: 0 0 auto;
-  height: 124px;
+  inset: 8px 0 auto;
+  height: 142px;
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
 }
 
 .hanging-hearts span {
   position: absolute;
   top: 0;
-  width: 1px;
+  width: 2px;
   height: 74px;
-  background: linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 211, 111, 0.12));
+  background: linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 211, 111, 0.3));
   transform-origin: top center;
   animation: hangingHeartSway 3.8s ease-in-out infinite;
 }
 
 .hanging-hearts span::after {
-  content: "♥";
+  content: "\2665";
   position: absolute;
   left: 50%;
-  bottom: -18px;
+  bottom: -22px;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.32);
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
   border-radius: 50%;
   color: white;
-  background: linear-gradient(135deg, rgba(255, 111, 168, 0.94), rgba(184, 23, 98, 0.92));
-  box-shadow: 0 14px 34px rgba(117, 32, 76, 0.28);
-  font-size: 18px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.34), transparent 28%),
+    linear-gradient(135deg, rgba(255, 84, 151, 0.98), rgba(184, 23, 98, 0.96));
+  box-shadow: 0 14px 34px rgba(117, 32, 76, 0.34);
+  font-size: 22px;
   transform: translateX(-50%) rotate(7deg);
 }
 
@@ -367,7 +369,7 @@ video {
 .login-panel > :not(.hanging-hearts),
 .intro-frame > :not(.hanging-hearts) {
   position: relative;
-  z-index: 1;
+  z-index: 3;
 }
 
 @keyframes hangingHeartSway {
