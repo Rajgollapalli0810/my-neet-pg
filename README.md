@@ -43,7 +43,7 @@ You can also open `index.html` directly in a browser, but a local server is bett
 
 ## Add Real Video Questions
 
-The app includes video-based questions in each section. By default, the demo uses open media from Wikimedia Commons so the questions work without uploading large files.
+The app includes video-based questions in each section. By default, the demo serves small local WebM files in `assets/video-cases/` so the questions work on GitHub Pages without depending on external video hotlinks.
 
 To replace them with your own clips, put MP4 files in:
 
@@ -67,13 +67,11 @@ If a local file is missing, the question still appears with a poster placeholder
 
 ## Video Sources
 
-The demo video cases use Wikimedia Commons media links for:
+The demo video cases use local copies of open Wikimedia Commons media for:
 
 - Lung ultrasound phantom clip.
 - Human kidney ultrasound scan.
 - Fetal movement ultrasound.
-- Human heart ultrasound.
-- Fetal spine ultrasound.
 
 ## Edit Questions
 

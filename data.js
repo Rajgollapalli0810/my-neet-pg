@@ -18,9 +18,9 @@ window.NEET_PG_DEMO_CONFIG = {
   videoCases: [
     {
       title: "Video case: Lung ultrasound clip",
-      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Imaging%20video%20taken%20on%20a%20COVID-19%20lung%20ultrasound%20phantom.webm",
+      src: "assets/video-cases/lung-ultrasound.webm",
       posterText: "Lung Ultrasound Video Case",
-      source: "Wikimedia Commons",
+      source: "Wikimedia Commons, served locally",
       question: {
         subject: "Medicine",
         stem: "On lung ultrasound, multiple vertical comet-tail artifacts arising from the pleural line are best described as:",
@@ -31,9 +31,9 @@ window.NEET_PG_DEMO_CONFIG = {
     },
     {
       title: "Video case: Human kidney ultrasound scan",
-      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Human%20Kidney%20Ultrasound%20Scan.webm",
+      src: "assets/video-cases/kidney-ultrasound.webm",
       posterText: "Kidney Ultrasound Video Case",
-      source: "Wikimedia Commons",
+      source: "Wikimedia Commons, served locally",
       question: {
         subject: "Surgery",
         stem: "A renal ultrasound video is shown. Which finding is most suggestive of hydronephrosis?",
@@ -44,9 +44,9 @@ window.NEET_PG_DEMO_CONFIG = {
     },
     {
       title: "Video case: Fetal movement on 3D ultrasound",
-      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Fetal%20movements%203D%20Ultrasound%20Dr.%20Wolfgang%20Moroder.theora.ogv",
+      src: "assets/video-cases/fetal-movement.webm",
       posterText: "Fetal Ultrasound Video Case",
-      source: "Wikimedia Commons",
+      source: "Wikimedia Commons, served locally",
       question: {
         subject: "Obstetrics",
         stem: "The fetal ultrasound video demonstrates fetal movement. In routine obstetric practice, ultrasound is useful for all except:",
@@ -56,29 +56,29 @@ window.NEET_PG_DEMO_CONFIG = {
       }
     },
     {
-      title: "Video case: Cardiac ultrasound clip",
-      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Ultrasound%20video%20of%20a%20human%20heart%20-%201741-7015-9-17.ogv",
-      posterText: "Cardiac Ultrasound Video Case",
-      source: "Wikimedia Commons",
+      title: "Video case: Ultrasound imaging principle",
+      src: "assets/video-cases/kidney-ultrasound.webm",
+      posterText: "Ultrasound Physics Video Case",
+      source: "Wikimedia Commons, served locally",
       question: {
         subject: "Physiology",
-        stem: "The moving cardiac ultrasound primarily demonstrates which physiological event?",
-        options: ["Ventilation of alveoli", "Cyclical myocardial contraction and relaxation", "Renal tubular filtration", "Peristalsis of small intestine"],
+        stem: "The ultrasound video demonstrates real-time imaging. The transducer primarily works on which physical principle?",
+        options: ["Photoelectric effect", "Piezoelectric effect", "Doppler-only electrical discharge", "Magnetic resonance"],
         answer: 1,
-        explanation: "Echocardiography displays real-time myocardial motion during systole and diastole."
+        explanation: "Ultrasound transducers use the piezoelectric effect to convert electrical energy into sound waves and received echoes back into electrical signals."
       }
     },
     {
-      title: "Video case: Fetal spine ultrasound",
-      src: "https://commons.wikimedia.org/wiki/Special:FilePath/Fetal%20spine%2019%20weeks%20Dr%20Wolfgang%20Moroder.theora.ogv",
-      posterText: "Fetal Spine Ultrasound Video Case",
-      source: "Wikimedia Commons",
+      title: "Video case: Fetal ultrasound clip",
+      src: "assets/video-cases/fetal-movement.webm",
+      posterText: "Fetal Ultrasound Anatomy Case",
+      source: "Wikimedia Commons, served locally",
       question: {
         subject: "Anatomy",
-        stem: "The fetal spine ultrasound clip is shown. Failure of closure of the posterior vertebral arches is associated with:",
-        options: ["Spina bifida", "Craniosynostosis", "Achondroplasia", "Osteopetrosis"],
-        answer: 0,
-        explanation: "Spina bifida results from defective closure of the neural tube/vertebral arches."
+        stem: "The fetal ultrasound clip is shown. Which germ layer gives rise to the central nervous system?",
+        options: ["Endoderm", "Mesoderm", "Ectoderm", "Extraembryonic trophoblast"],
+        answer: 2,
+        explanation: "The central nervous system develops from neuroectoderm."
       }
     }
   ],
